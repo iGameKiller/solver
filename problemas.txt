@@ -1,8 +1,17 @@
 #simplex
 #
-
-
-
+MA[3 2] RE[1 1 <= 6], [5 2 <= 20] SF[14.67] SV[2.67 3.33]                           - executa com todos com resposta certa
+MI[4 -2] RE[2 1 <= 10], [1 -1 <= 8] SF[-20] SV[10 18]                               - executa com todos com resposta certa
+MA[10 8 5] RE[3 5 4 <= 20], [4 2 1 <= 10], [1 2 2 <= 20] SF[35.7] SV[0.71 3.57 0]   - executa com todos com resposta certa
+MA[3 5 4] RE[2 1 3 <= 11], [3 3 1 <= 14], [1 2 2 <= 13] SF[28.86] SV[0 3.88 2.38]   - executa com todos com resposta certa
+MA[5 4] RE[4 2 <= 32], [2 3 <= 24] SF[46] SV[6 4]                                   - executa com todos com resposta certa
+MA[15 8 14] RE[3 5 4 <= 50], [5 3 4 <= 80], [1 5 2 <= 150] SF[242.5] SV[15 0 1.25]  - executa com todos com resposta certa
+MA[1 2 3] RE[1 1 1 <= 12], [2 1 3 <= 18], [2 1 3 <= 18] SF[27] SV[0 9 3]            - executa com todos com resposta certa
+MA[5 4] RE[6 4 <= 24], [1 2 <= 6], [-1 1 <= 1], [0 1 <= 2] SF[21] SV[3 1.5]         - executa com todos com resposta certa
+MA[10 6] RE[1 2 <= 2], [2 1 <= 3], [2 2 <= 3], [4 1 <= 2] SF[8] SV[0.29 0.86]       - executa com todos
+MA[1000 1800] RE[20 30 <= 1200], [1 0 <= 40], [0 1 <= 30] SF[69000] SV[15 30]       - executa com todos porém com resposta errada
+MA[80 60] RE[4 6 <= 24], [4 2 <= 16], [0 1 <= 3] SF[360] SV[3 2]                    - executa com todos com resposta certa
+MA[600 800 900 500] RE[1 1 1 1 <= 400], [1000 1200 1200 1500 <= 500000], [20 30 25 28 <= 10000] SF[360000] SV[0 0 400 0] - executa com todos
 #
 #simplex duas fases
 #

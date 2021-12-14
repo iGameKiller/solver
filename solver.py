@@ -35,8 +35,8 @@ def construct(objet, f_obj, restr_a, restr_b):
 
         extraCol = len(restr_a) - len(f_obj)
         lin = len(f_obj)
-        col = (len(restr_a)+extraCol)
-        matrix = np.zeros([len(restr_a) + 1, (col + extraCol + 1)])
+        col = (len(restr_a) * 2 - extraCol)
+        matrix = np.zeros([len(restr_a) + 1, (col + 1)])
         idmatrix = np.zeros([len(restr_a), len(restr_a)])
 
         for i in range(len(f_obj)):  # Posicionando a função objetivo
@@ -59,7 +59,7 @@ def construct(objet, f_obj, restr_a, restr_b):
 
         for i in range(len(idmatrix)): # Posicionando a Matriz Identidade
             for j in range(len(idmatrix[i])):
-                matrix[(lin-1)+i][(col-1)+j] = idmatrix[i][j]
+                matrix[(lin-1)+i][(col-extraCol-1)+j] = idmatrix[i][j]
 
         return matrix
 
@@ -154,8 +154,10 @@ def simplex(objet, f_obj, restr_A, restr_b):
     col = (len(f_obj) * 2) + 1
     matrix = construct(objet, f_obj, restr_A, restr_b)
     allpositives = False
+    itcounter = 0
 
     while not allpositives:
+        itcounter = itcounter + 1
         ngtvcounter = 0  # Conta a quantidade de valores negativos existentes
         minorvalue = matrix[0][0]  # Procura o menor número na primeira linha
         minorColPos = 0
@@ -166,7 +168,7 @@ def simplex(objet, f_obj, restr_A, restr_b):
                 minorvalue = matrix[0][i]
                 minorColPos = i
 
-        print("___________________________________________")
+        print("__________________________ITERAÇÃO",itcounter,"___________________________")
         print(matrix)
         matrix = gauss(matrix, minorColPos, lin, col)
         if len(matrix) == 1:
@@ -183,7 +185,7 @@ def simplex(objet, f_obj, restr_A, restr_b):
     return answer
 
 
-def filter(line):
+def reader(line):
     #PATROCINADO
     # índices (posições) de expressões em strings
     ind_fo = line.index('RE')
@@ -260,6 +262,7 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
 
     answer = []
     if flag == 0:
+        print("___________________MÉTODO SIMPLEX SELECIONADO___________________")
         answer = simplex(objet, f_obj, restr_A, restr_b)
         for i in range(len(answer)):
             if i != 0:
@@ -272,7 +275,7 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
 
 if __name__ == "__main__":
 
-    f = open("tests.txt", "r")
+    f = open("problemas.txt", "r")
     lines = f.readlines()
 
     for l in lines:
@@ -280,7 +283,7 @@ if __name__ == "__main__":
             break
         elif l[0] != '#':  # ignorar linhas iniciadas com o caractere '#'
 
-            objet, f_obj, restricoesA, operadores, restricoesB = filter(l)
+            objet, f_obj, restricoesA, operadores, restricoesB = reader(l)
             if objet == "MA":
                 print("Objetivo: Maximizar")
             elif objet == 'MI':
@@ -293,5 +296,5 @@ if __name__ == "__main__":
             print(restricoesB)
 
             solver(objet, f_obj, restricoesA, operadores, restricoesB)
-            print("___________________________________________")
-            print("___________________________________________")
+            print("________________________________________________________________")
+            print("________________________________________________________________")
