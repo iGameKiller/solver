@@ -3,8 +3,11 @@ import numpy as np
 np.set_printoptions(suppress=True, precision=2)
 
 
-def construct(objet, f_obj, restr_a, restr_b):
-    if (len(f_obj) == len(restr_a)):
+def construct(objet, f_obj, restr_a, restr_b):  # Construtor de matrizes
+
+    # É preciso fazer um balanço entre o número de restrições e o número de variáveis na função objetivo
+    # antes de mais nada
+    if len(f_obj) == len(restr_a):  # Se o número de restrições for igual ao de variáveis: faça
         lin = len(f_obj) + 1
         col = (len(f_obj) * 2) + 1
         matrix = np.zeros([lin, col])
@@ -31,11 +34,11 @@ def construct(objet, f_obj, restr_a, restr_b):
 
         return matrix
 
-    elif len(restr_a) > len(f_obj):
+    elif len(restr_a) > len(f_obj):  # Se o número de restrições for maior que o número de variáveis: faça
 
         extraCol = len(restr_a) - len(f_obj)
         lin = len(f_obj)
-        col = (len(restr_a) * 2 - extraCol)
+        col = (len(restr_a) * 2 - extraCol)  # Jogada de gênio
         matrix = np.zeros([len(restr_a) + 1, (col + 1)])
         idmatrix = np.zeros([len(restr_a), len(restr_a)])
 
@@ -57,13 +60,13 @@ def construct(objet, f_obj, restr_a, restr_b):
                 if i == j:
                     idmatrix[i][j] = 1
 
-        for i in range(len(idmatrix)): # Posicionando a Matriz Identidade
+        for i in range(len(idmatrix)):  # Posicionando a Matriz Identidade
             for j in range(len(idmatrix[i])):
-                matrix[(lin-1)+i][(col-extraCol-1)+j] = idmatrix[i][j]
+                matrix[(lin - 1) + i][(col - extraCol - 1) + j] = idmatrix[i][j]
 
         return matrix
 
-    elif len(restr_a) < len(f_obj):
+    elif len(restr_a) < len(f_obj):  # Se o número de restrições for menor que o número de variáveis: faça
 
         extraCol = len(f_obj) - len(restr_a)
         lin = len(f_obj)
@@ -90,9 +93,9 @@ def construct(objet, f_obj, restr_a, restr_b):
                 if i == j:
                     idmatrix[i][j] = 1
 
-        for i in range(len(idmatrix)): # Posicionando a Matriz Identidade
+        for i in range(len(idmatrix)):  # Posicionando a Matriz Identidade
             for j in range(len(idmatrix[i])):
-                matrix[(col-2) + i][(lin+1)+j] = idmatrix[i][j]
+                matrix[(col - 2) + i][(lin + 1) + j] = idmatrix[i][j]
 
         return matrix
 
@@ -161,14 +164,14 @@ def simplex(objet, f_obj, restr_A, restr_b):
         ngtvcounter = 0  # Conta a quantidade de valores negativos existentes
         minorvalue = matrix[0][0]  # Procura o menor número na primeira linha
         minorColPos = 0
-        for i in range(col-1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
+        for i in range(col - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
             if matrix[0][i] < 0:
                 ngtvcounter = ngtvcounter + 1
             if matrix[0][i] < minorvalue:
                 minorvalue = matrix[0][i]
                 minorColPos = i
 
-        print("__________________________ITERAÇÃO",itcounter,"___________________________")
+        print("____________________________ITERAÇÃO", itcounter, "_____________________________")
         print(matrix)
         matrix = gauss(matrix, minorColPos, lin, col)
         if len(matrix) == 1:
@@ -177,16 +180,16 @@ def simplex(objet, f_obj, restr_A, restr_b):
         if ngtvcounter == 0:
             allpositives = True
 
-    if(objet == 'MA'):
+    if objet == 'MA':
         answer = matrix[0]
-    elif(objet == 'MI'):
+    elif objet == 'MI':
         answer = -matrix[0]
 
     return answer
 
 
-def reader(line):
-    #PATROCINADO
+def reader(line):  # PATROCINADO
+
     # índices (posições) de expressões em strings
     ind_fo = line.index('RE')
     ind_re = line.index('SF')
@@ -219,7 +222,7 @@ def reader(line):
         for j in range(len(rest_array[i])):
             if rest_array[i][j] == '<=' or rest_array[i][j] == '>=' or rest_array[i][j] == '==':
                 restr_op.append(rest_array[i][j])
-                aux_b.append(float(rest_array[i][j+1]))
+                aux_b.append(float(rest_array[i][j + 1]))
                 break
 
             aux_a.append(float(rest_array[i][j]))
@@ -260,13 +263,12 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
         if restr_op[i] == '>=' or restr_op[i] == '==':
             flag = 1
 
-    answer = []
     if flag == 0:
-        print("___________________MÉTODO SIMPLEX SELECIONADO___________________")
+        print("_____________________MÉTODO SIMPLEX SELECIONADO_____________________")
         answer = simplex(objet, f_obj, restr_A, restr_b)
         for i in range(len(answer)):
             if i != 0:
-                print("X",i, "=", "%.1f" % answer[i])
+                print("X", i, "=", "%.1f" % answer[i])
             else:
                 print("A solução ótima da Função Objetivo vale", "%.1f" % answer[i])
     elif flag == 1:
@@ -281,7 +283,7 @@ if __name__ == "__main__":
     for l in lines:
         if l == '\n':
             break
-        elif l[0] != '#':  # ignorar linhas iniciadas com o caractere '#'
+        if l[0] != '#':  # Cortesia do Professor: ignorar linhas iniciadas com o caractere '#'
 
             objet, f_obj, restricoesA, operadores, restricoesB = reader(l)
             if objet == "MA":
@@ -296,5 +298,5 @@ if __name__ == "__main__":
             print(restricoesB)
 
             solver(objet, f_obj, restricoesA, operadores, restricoesB)
-            print("________________________________________________________________")
-            print("________________________________________________________________")
+            print("__________________________________________________________________")
+            print("__________________________________________________________________")
