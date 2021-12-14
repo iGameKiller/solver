@@ -263,9 +263,9 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
         answer = simplex(objet, f_obj, restr_A, restr_b)
         for i in range(len(answer)):
             if i != 0:
-                print("X",i, "=", "%.3f" % answer[i])
+                print("X",i, "=", "%.1f" % answer[i])
             else:
-                print("A solução ótima da Função Objetivo vale", "%.3f" % answer[i])
+                print("A solução ótima da Função Objetivo vale", "%.1f" % answer[i])
     elif flag == 1:
         answer = twophase(objet, f_obj, restr_A, restr_op, restr_b)
 
