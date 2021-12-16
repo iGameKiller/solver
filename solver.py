@@ -337,6 +337,7 @@ def matrixbodyv3(f_obj, restr_a, restr_op, restr_b):
     for i in range(len(idmatrix)):  # Posicionando a Matriz Identidade
         for j in range(len(idmatrix[i])):
             matrix[i + 1][(lin + 1) + j] = idmatrix[i][j]
+    print("")
 
     return matrix
 
