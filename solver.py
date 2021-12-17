@@ -102,138 +102,91 @@ def gauss(matrix, minorcolpos, lin, col):
     return matrix
 
 
-def constructonephase(objet, f_obj, restr_a, restr_b):  # Construtor de matrizes
+def readed(objet, f_obj, restr_a, restr_op, restr_b):
+    if objet == "MA":
+        print("Objetivo: Maximizar")
+    elif objet == 'MI':
+        print("Objetivo: Minimizar")
+    print("Números da função objetivo", f_obj)
+    print("Matriz de Restrições A: ")
+    print(restricoesA)
+    print("Operadores: ", operadores)
+    print("Matriz de Restrições B: ")
+    print(restricoesB)
+
+
+def totableau(objet, f_obj, restr_a, restr_op, restr_b):  # Construtor de matrizes
 
     # É preciso fazer um balanço entre o número de restrições e o número de variáveis na função objetivo
     # antes de mais nada
+
     if len(f_obj) == len(restr_a):  # Se o número de restrições for igual ao de variáveis, faça:
         lin = len(f_obj) + 1
         col = (len(f_obj) * 2) + 1
         matrix = np.zeros([lin, col])
         idmatrix = np.zeros([len(restr_a), len(restr_a)])
 
-        for i in range(len(f_obj)):  # Posicionando a função objetivo
-            if objet == 'MA':
-                matrix[0, i + 1] = -f_obj[i]
-            elif objet == 'MI':
-                matrix[0, i + 1] = f_obj[i]
-
-        for i in range(len(restr_b)):  # Posicionando a matriz A de restrições
-            for j in range(len(restr_b)):
-                matrix[i + 1][j + 1] = restr_a[i][j]
-                if i == j:
-                    idmatrix[i][j] = 1
-
-        for i in range(len(restr_b)):  # Posicionando matriz B de restrições
-            matrix[i + 1][0] = restr_b[i]
+        matrix = matrixbody(matrix, idmatrix, f_obj, restr_a, restr_op, restr_b)
 
         for i in range(len(restr_b)):  # Posicionando a matriz identidade
             for j in range(len(restr_b)):
-                matrix[i + 1][lin + j] = idmatrix[i][j]
+                matrix[i + 1][len(restr_b) + j + 1] = idmatrix[i][j]
 
         return matrix
 
     elif len(restr_a) > len(f_obj):  # Se o número de restrições for maior que o número de variáveis, faça:
 
         extraCol = len(restr_a) - len(f_obj)
-        lin = len(f_obj)
-        col = (len(restr_a) * 2 - extraCol)  # QUE JOGADA DE MESTRE!!
-        matrix = np.zeros([len(restr_a) + 1, (col + 1)])
-        idmatrix = np.zeros([len(restr_a), len(restr_a)])
 
-        for i in range(len(f_obj)):  # Posicionando a função objetivo
-            if objet == 'MA':
-                matrix[0, i + 1] = -f_obj[i]
-            elif objet == 'MI':
-                matrix[0, i + 1] = f_obj[i]
+        if extraCol == 1:
+            col = (len(restr_a) * 2 - extraCol)  # QUE JOGADA DE MESTRE!!
+            matrix = np.zeros([len(restr_a) + 1, (col + 1)])
+            idmatrix = np.zeros([len(restr_a), len(restr_a)])
 
-        for i in range(len(restr_a)):  # Posicionando a matriz A de restrições
-            for j in range(len(restr_a[i])):
-                matrix[i + 1][j + 1] = restr_a[i][j]
+            matrix = matrixbody(matrix, idmatrix, f_obj, restr_a, restr_op, restr_b)
 
-        for i in range(len(restr_b)):  # Posicionando matriz B de restrições
-            matrix[i + 1][0] = restr_b[i]
+            for i in range(len(idmatrix)):  # Posicionando a Matriz Identidade
+                for j in range(len(idmatrix[i])):
+                    matrix[i + 1][(len(idmatrix[i])) + j] = idmatrix[i][j]
 
-        for i in range(len(idmatrix)):  # Setando a Matriz Identidade
-            for j in range(len(idmatrix[i])):
-                if i == j:
-                    idmatrix[i][j] = 1
+            return matrix
 
-        for i in range(len(idmatrix)):  # Posicionando a Matriz Identidade
-            for j in range(len(idmatrix[i])):
-                matrix[(lin - 1) + i][(col - extraCol - 1) + j] = idmatrix[i][j]
+        elif extraCol == 2:
 
-        return matrix
+            col = (len(restr_a) * 2 - extraCol)  # QUE JOGADA DE MESTRE!!
+            matrix = np.zeros([len(restr_a) + 1, (col + 1)])
+            idmatrix = np.zeros([len(restr_a), len(restr_a)])
+            restr_matrix = np.zeros((len(restr_a), len(restr_a)))
+
+            for i in range(len(restr_a)):
+                for j in range(len(restr_a[i])):
+                    restr_matrix[i][j] = restr_a[i][j]
+
+            matrix = matrixbody(matrix, idmatrix, f_obj, restr_a, restr_op, restr_b)
+
+            for i in range(len(idmatrix)):  # Posicionando a Matriz Identidade
+                for j in range(len(idmatrix[i])):
+                    matrix[i + 1][(len(idmatrix[i]) - 1) + j] = idmatrix[i][j]
+
+            return matrix
 
     elif len(restr_a) < len(f_obj):  # Se o número de restrições for menor que o número de variáveis, faça:
 
         extraCol = len(f_obj) - len(restr_a)
-        lin = len(f_obj)
-        col = (len(restr_a))
-        matrix = np.zeros([len(restr_a) + 1, (col + lin + extraCol)])
-        idmatrix = np.zeros([col, col])
+        if extraCol == 1:
 
-        for i in range(len(f_obj)):  # Posicionando a função objetivo
-            if objet == 'MA':
-                matrix[0, i + 1] = -f_obj[i]
-            elif objet == 'MI':
-                matrix[0, i + 1] = f_obj[i]
+            matrix = matrixbodyv2(f_obj, restr_a, restr_op, restr_b, extraCol)
+            return matrix
 
-        for i in range(col):  # Posicionando a matriz A de restrições
-            steps = len(restr_a[i])
-            for j in range(steps):
-                matrix[i + 1][j + 1] = restr_a[i][j]
+        elif extraCol == 2:
 
-        for i in range(col):  # Posicionando matriz B de restrições
-            matrix[i + 1][0] = restr_b[i]
+            matrix = matrixbodyv3(f_obj, restr_a, restr_op, restr_b)
+            return matrix
 
-        for i in range(col):  # Setando a Matriz Identidade
-            for j in range(len(idmatrix[i])):
-                if i == j:
-                    idmatrix[i][j] = 1
+        elif extraCol == 3:
 
-        for i in range(len(idmatrix)):  # Posicionando a Matriz Identidade
-            for j in range(len(idmatrix[i])):
-                matrix[(col - 2) + i][(lin + 1) + j] = idmatrix[i][j]
-
-        return matrix
-
-
-def simplexonephase(objet, f_obj, restr_A, restr_b):
-
-    lin = len(f_obj) + 1
-    col = (len(f_obj) * 2) + 1
-    matrix = constructonephase(objet, f_obj, restr_A, restr_b)
-    allpositives = False
-    itcounter = 0
-
-    while not allpositives:
-        itcounter = itcounter + 1
-        ngtvcounter = 0  # Conta a quantidade de valores negativos existentes
-        minorvalue = matrix[0][0]  # Procura o menor número na primeira linha
-        minorColPos = 0
-        for i in range(col - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
-            if matrix[0][i] < 0:
-                ngtvcounter = ngtvcounter + 1
-            if matrix[0][i] < minorvalue:
-                minorvalue = matrix[0][i]
-                minorColPos = i
-
-        print("____________________________ITERAÇÃO", itcounter, "_____________________________")
-        print(matrix)
-        matrix = gauss(matrix, minorColPos, lin, col)
-        if len(matrix) == 1:
-            if matrix[0] == -1:
-                allpositives = True
-        if ngtvcounter == 0:
-            allpositives = True
-
-    if objet == 'MA':
-        answer = matrix[0]
-    elif objet == 'MI':
-        answer = -matrix[0]
-
-    return answer
+            matrix = matrixbodyv3(f_obj, restr_a, restr_op, restr_b)
+            return matrix
 
 
 def matrixbody(matrix, idmatrix, f_obj, restr_a, restr_op, restr_b):
@@ -341,87 +294,194 @@ def matrixbodyv3(f_obj, restr_a, restr_op, restr_b):
 
     return matrix
 
-def constructwophase(objet, f_obj, restr_a, restr_op, restr_b):  # Construtor de matrizes
 
-    # É preciso fazer um balanço entre o número de restrições e o número de variáveis na função objetivo
-    # antes de mais nada
+def simplexonephase(objet, f_obj, restr_A, restr_op, restr_b):
 
-    if len(f_obj) == len(restr_a):  # Se o número de restrições for igual ao de variáveis, faça:
-        lin = len(f_obj) + 1
-        col = (len(f_obj) * 2) + 1
-        matrix = np.zeros([lin, col])
-        idmatrix = np.zeros([len(restr_a), len(restr_a)])
+    lin = len(f_obj) + 1
+    col = (len(f_obj) * 2) + 1
 
-        matrix = matrixbody(matrix, idmatrix, f_obj, restr_a, restr_op, restr_b)
+    matrix = totableau(objet, f_obj, restr_A, restr_op, restr_b)
 
-        for i in range(len(restr_b)):  # Posicionando a matriz identidade
-            for j in range(len(restr_b)):
-                matrix[i + 1][len(restr_b) + j + 1] = idmatrix[i][j]
+    allpositives = False
+    itcounter = 0
 
-        return matrix
+    while not allpositives:
+        itcounter = itcounter + 1
+        ngtvcounter = 0  # Conta a quantidade de valores negativos existentes
+        minorvalue = matrix[0][0]  # Procura o menor número na primeira linha
+        minorColPos = 0
+        for i in range(col - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
+            if matrix[0][i] < 0:
+                ngtvcounter = ngtvcounter + 1
+            if matrix[0][i] < minorvalue:
+                minorvalue = matrix[0][i]
+                minorColPos = i
 
-    elif len(restr_a) > len(f_obj):  # Se o número de restrições for maior que o número de variáveis, faça:
+        print("____________________________ITERAÇÃO", itcounter, "_____________________________")
+        print(matrix)
+        matrix = gauss(matrix, minorColPos, lin, col)
+        if len(matrix) == 1:
+            if matrix[0] == -1:
+                allpositives = True
+        if ngtvcounter == 0:
+            allpositives = True
 
-        extraCol = len(restr_a) - len(f_obj)
+    if objet == 'MA':
+        answer = matrix[0]
+    elif objet == 'MI':
+        answer = -matrix[0]
 
-        if extraCol == 1:
-            col = (len(restr_a) * 2 - extraCol)  # QUE JOGADA DE MESTRE!!
-            matrix = np.zeros([len(restr_a) + 1, (col + 1)])
-            idmatrix = np.zeros([len(restr_a), len(restr_a)])
+    return answer
 
-            matrix = matrixbody(matrix, idmatrix, f_obj, restr_a, restr_op, restr_b)
 
-            for i in range(len(idmatrix)):  # Posicionando a Matriz Identidade
-                for j in range(len(idmatrix[i])):
-                    matrix[i + 1][(len(idmatrix[i])) + j] = idmatrix[i][j]
+def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
 
-            return matrix
+    if len(restr_a) > len(f_obj) or len(restr_a) == len(f_obj):
+        A_pos = []
+        A_number = []
+        A_count = 0
 
-        elif extraCol == 2:
-            col = (len(restr_a) * 2 - extraCol)  # QUE JOGADA DE MESTRE!!
-            matrix = np.zeros([len(restr_a) + 1, (col + 1)])
-            idmatrix = np.zeros([len(restr_a), len(restr_a)])
-            restr_matrix = np.zeros((len(restr_a), len(restr_a)))
+        X_pos = []
+        X_sign = []
+        X_number = []
+        X_count = 0
 
-            for i in range(len(restr_a)):
-                for j in range(len(restr_a[i])):
-                    restr_matrix[i][j] = restr_a[i][j]
+        for i in range(len(restr_op)):
 
-            matrix = matrixbody(matrix, idmatrix, f_obj, restr_a, restr_op, restr_b)
+            if restr_op[i] == '==':
+                A_count = A_count + 1
+                A_pos.append(i)
+                A_number.append(1)
 
-            for i in range(len(idmatrix)):  # Posicionando a Matriz Identidade
-                for j in range(len(idmatrix[i])):
-                    matrix[i + 1][(len(idmatrix[i]) - 1) + j] = idmatrix[i][j]
+            elif restr_op[i] == '>=':
+                A_count = A_count + 1
+                A_pos.append(i)
+                A_number.append(1)
 
-            return matrix
+                X_sign.append(restr_op[i])
+                X_count = X_count + 1
+                X_pos.append(i)
+                X_number.append(-1)
+            elif restr_op[i] == '<=':
+                X_count = X_count + 1
+                X_pos.append(i)
+                X_sign.append(restr_op[i])
+                X_number.append(1)
 
-    elif len(restr_a) < len(f_obj):  # Se o número de restrições for menor que o número de variáveis, faça:
+        X_matrix = np.zeros((len(restr_op), X_count))
+        A_matrix = np.zeros((len(restr_op), A_count))
+
+        n_length = len(f_obj) + X_count + A_count + 1
+        matrix = np.zeros(((len(restr_op)+1), n_length))
+        limit = len(matrix[0]) - (len(matrix[0])-A_count)
+        limit = n_length - limit
+
+        for i in range(limit,len(matrix[0])):
+            matrix[0][i] = 1
+
+        restr_A = np.zeros((len(restr_a), len(restr_a)))
+
+        for i in range(len(restr_A)):
+            for j in range(len(restr_a[i])):
+                restr_A[i][j] = float(restr_a[i][j])
+
+
+        for i in range(len(restr_a)):  # Posicionando a matriz A de restrições
+            for j in range(len(restr_a[i])):
+                matrix[i + 1][j + 1] = restr_a[i][j]
+
+        for i in range(len(restr_b)):  # Posicionando matriz B de restrições
+            matrix[i + 1][0] = restr_b[i]
+
+        col = 0
+        for i in range(len(X_pos)):
+            X_matrix[X_pos[i]][col] = X_number[i]
+            col = col + 1
+
+        for i in range(len(X_matrix)):
+            for j in range(len(X_matrix[i])):
+                matrix[i+1][len(f_obj)+j+1] = X_matrix[i][j]
+
+        col = 0
+        for i in range(len(A_pos)):
+            A_matrix[A_pos[i]][col] = A_number[i]
+            col = col + 1
+
+        for i in range(len(A_matrix)):
+            for j in range(len(A_matrix[i])):
+                matrix[i+1][len(f_obj)+j+X_count+1] = A_matrix[i][j]
+
+        print(matrix)
+        print("___________________________________________________________")
+
+    elif len(restr_a) < len(f_obj):
 
         extraCol = len(f_obj) - len(restr_a)
+
         if extraCol == 1:
+            A_pos = []
+            A_number = []
+            A_count = 0
 
-            matrix = matrixbodyv2(f_obj, restr_a, restr_op, restr_b, extraCol)
-            return matrix
+            X_pos = []
+            X_sign = []
+            X_number = []
+            X_count = 0
 
-        elif extraCol == 2:
+            for i in range(len(restr_op)):
 
-            matrix = matrixbodyv3(f_obj, restr_a, restr_op, restr_b)
-            return matrix
+                if restr_op[i] == '==':
+                    A_count = A_count + 1
+                    A_pos.append(i)
+                    A_number.append(1)
 
-        elif extraCol == 3:
+                elif restr_op[i] == '>=':
+                    A_count = A_count + 1
+                    A_pos.append(i)
+                    A_number.append(1)
 
-            matrix = matrixbodyv3(f_obj, restr_a, restr_op, restr_b)
-            return matrix
+                    X_sign.append(restr_op[i])
+                    X_count = X_count + 1
+                    X_pos.append(i)
+                    X_number.append(-1)
+
+                elif restr_op[i] == '<=':
+                    X_count = X_count + 1
+                    X_pos.append(i)
+                    X_sign.append(restr_op[i])
+                    X_number.append(1)
+
+            X_matrix = np.zeros((len(restr_op), X_count))
+            A_matrix = np.zeros((len(restr_op), A_count))
+
+            n_length = len(f_obj) + X_count + A_count + 1
+            matrix = np.zeros(((len(restr_op) + 1), n_length+1))
+            limit = len(matrix[0]) - (len(matrix[0]) - A_count)
+            limit = n_length - limit
+
+            for i in range(limit, len(matrix[0])):
+                matrix[0][i] = 1
+
+            col = 0
+            for i in range(len(X_pos)):
+                X_matrix[X_pos[i]][col] = X_number[i]
+                col = col + 1
+
+            for i in range(len(X_matrix)):
+                for j in range(len(X_matrix[i])):
+                    matrix[i + 1][len(f_obj) + j + 1] = X_matrix[i][j]
+
+            col = 0
+            for i in range(len(A_pos)):
+                A_matrix[A_pos[i]][col] = A_number[i]
+                col = col + 1
+
+            for i in range(len(A_matrix)):
+                for j in range(len(A_matrix[i])):
+                    matrix[i + 1][len(f_obj) + j + X_count + 1] = A_matrix[i][j]
 
 
-def simplextwophase(objet, f_obj, restr_A, restr_op, restr_b):
-    print("Two phase here")
-    matrix = constructwophase(objet, f_obj, restr_A, restr_op, restr_b)
-
-    #Agora sim eu posso acabar com essa desgraça desse trabalho
-
-    print(matrix)
-    return matrix
+            print(matrix)
 
 
 def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
@@ -450,14 +510,23 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
             flag = 1
 
     if flag == 0:
+
+        readed(objet, f_obj, restr_A, restr_op, restr_b)
         print("_____________________MÉTODO SIMPLEX SELECIONADO_____________________")
-        answer = simplexonephase(objet, f_obj, restr_A, restr_b)
+
+        answer = simplexonephase(objet, f_obj, restr_A, restr_op, restr_b)
         for i in range(len(answer)):
             if i != 0:
                 print("X", i, "=", "%.1f" % answer[i])
             else:
                 print("A solução ótima da Função Objetivo vale", "%.1f" % answer[i])
+                print("__________________________________________________________________")
+                print("__________________________________________________________________")
+
     elif flag == 1:
+
+        readed(objet, f_obj, restr_A, restr_op, restr_b)
+        print("__________MÉTODO SIMPLEX DUAS FASES SELECIONADO__________")
         answer = simplextwophase(objet, f_obj, restr_A, restr_op, restr_b)
 
 
@@ -472,17 +541,4 @@ if __name__ == "__main__":
         if l[0] != '#':  # Cortesia do Professor: ignorar linhas iniciadas com o caractere '#'
 
             objet, f_obj, restricoesA, operadores, restricoesB = reader(l)
-            if objet == "MA":
-                print("Objetivo: Maximizar")
-            elif objet == 'MI':
-                print("Objetivo: Minimizar")
-            print("Números da função objetivo", f_obj)
-            print("Matriz de Restrições A: ")
-            print(restricoesA)
-            print("Operadores: ", operadores)
-            print("Matriz de Restrições B: ")
-            print(restricoesB)
-
             solver(objet, f_obj, restricoesA, operadores, restricoesB)
-            print("__________________________________________________________________")
-            print("__________________________________________________________________")
