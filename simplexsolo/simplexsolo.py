@@ -116,7 +116,7 @@ def gauss(matrix, minorcolpos, lin, col):
     return matrix
 
 
-def matrixbody(objet, f_obj, restr_a, restr_op, restr_b):
+def tableau(objet, f_obj, restr_a, restr_op, restr_b):
     lin = len(restr_op) + 1
     col = len(f_obj) + len(restr_op) + 1
     matrix = np.zeros([lin, col])
@@ -151,7 +151,7 @@ def simplexonephase(objet, f_obj, restr_a, restr_op, restr_b):
     lin = len(f_obj) + 1
     col = (len(f_obj) * 2) + 1
 
-    matrix = matrixbody(objet, f_obj, restr_a, restr_op, restr_b)
+    matrix = tableau(objet, f_obj, restr_a, restr_op, restr_b)
 
     allpositives = False
     itcounter = 0

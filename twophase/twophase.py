@@ -2,7 +2,6 @@ import numpy as np
 
 np.set_printoptions(suppress=True, precision=2)
 
-
 def reader(line):  # PATROCINADO
 
     # índices (posições) de expressões em strings
@@ -115,154 +114,82 @@ def readed(objet, f_obj, restr_a, restr_op, restr_b):
     print(restricoesB)
 
 
-def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
+def constructor(f_obj, restr_a, restr_op, restr_b):
 
-    if len(restr_a) > len(f_obj) or len(restr_a) == len(f_obj):
-        A_pos = []
-        A_number = []
-        A_count = 0
+    if len(f_obj) == len(restr_op) or len(f_obj) < len(restr_op):
 
-        X_pos = []
-        X_sign = []
-        X_number = []
-        X_count = 0
+        A_var = []
+        S_var = []
 
         for i in range(len(restr_op)):
-
-            if restr_op[i] == '==':
-                A_count = A_count + 1
-                A_pos.append(i)
-                A_number.append(1)
+            if restr_op[i] == '<=':
+                data = (i, 1)
+                S_var.append(data)
 
             elif restr_op[i] == '>=':
-                A_count = A_count + 1
-                A_pos.append(i)
-                A_number.append(1)
+                data = (i, -1)
+                S_var.append(data)
 
-                X_sign.append(restr_op[i])
-                X_count = X_count + 1
-                X_pos.append(i)
-                X_number.append(-1)
-            elif restr_op[i] == '<=':
-                X_count = X_count + 1
-                X_pos.append(i)
-                X_sign.append(restr_op[i])
-                X_number.append(1)
+                data = (i, 1)
+                A_var.append(data)
 
-        X_matrix = np.zeros((len(restr_op), X_count))
-        A_matrix = np.zeros((len(restr_op), A_count))
+            elif restr_op[i] == '==':
+                data = (i, 1)
+                A_var.append(data)
 
-        n_length = len(f_obj) + X_count + A_count + 1
-        matrix = np.zeros(((len(restr_op)+1), n_length))
-        limit = len(matrix[0]) - (len(matrix[0])-A_count)
-        limit = n_length - limit
+        lin = len(restr_op) + 2
+        col = len(f_obj) + len(S_var) + len(A_var) + 1
 
-        for i in range(limit, len(matrix[0])):
-            matrix[0][i] = 1
+        matrix = np.zeros((lin, col))
 
-        restr_A = np.zeros((len(restr_a), len(restr_a)))
-
-        for i in range(len(restr_A)):
+        restr_A = np.zeros((len(restr_a), len(restr_op)))  # Transformando restrições sem tipo em numéricas
+        for i in range(len(restr_a)):
             for j in range(len(restr_a[i])):
                 restr_A[i][j] = float(restr_a[i][j])
 
-
-        for i in range(len(restr_a)):  # Posicionando a matriz A de restrições
-            for j in range(len(restr_a[i])):
-                matrix[i + 1][j + 1] = restr_a[i][j]
+        for i in range(len(restr_A)):  # Posicionando a matriz A de restrições
+            for j in range(len(restr_A[i])):
+                matrix[i + 1][j + 1] = restr_A[i][j]
 
         for i in range(len(restr_b)):  # Posicionando matriz B de restrições
             matrix[i + 1][0] = restr_b[i]
 
-        col = 0
-        for i in range(len(X_pos)):
-            X_matrix[X_pos[i]][col] = X_number[i]
-            col = col + 1
+        if len(S_var) > 0: # Posicionando variáveis de folga
+            S_matrix = np.zeros((len(restr_op), len(S_var)))
 
-        for i in range(len(X_matrix)):
-            for j in range(len(X_matrix[i])):
-                matrix[i+1][len(f_obj)+j+1] = X_matrix[i][j]
+            aux = 0
+            for i in range(len(S_var)):
+                S_matrix[S_var[i][0]][aux] = S_var[i][1]
+                aux = aux + 1
 
-        col = 0
-        for i in range(len(A_pos)):
-            A_matrix[A_pos[i]][col] = A_number[i]
-            col = col + 1
+            for i in range(len(S_matrix)):
+                for j in range(len(S_matrix[i])):
+                    matrix[i + 1][len(f_obj) + 1 + j] = S_matrix[i][j]
 
-        for i in range(len(A_matrix)):
-            for j in range(len(A_matrix[i])):
-                matrix[i+1][len(f_obj)+j+X_count+1] = A_matrix[i][j]
+        if len(A_var) > 0: # Posicionando variáveis artificiais
+            A_matrix = np.zeros((len(restr_op), len(A_var)))
 
-        print(matrix)
-        print("___________________________________________________________")
-
-    elif len(restr_a) < len(f_obj):
-
-        extraCol = len(f_obj) - len(restr_a)
-
-        if extraCol == 1:
-            A_pos = []
-            A_number = []
-            A_count = 0
-
-            X_pos = []
-            X_sign = []
-            X_number = []
-            X_count = 0
-
-            for i in range(len(restr_op)):
-
-                if restr_op[i] == '==':
-                    A_count = A_count + 1
-                    A_pos.append(i)
-                    A_number.append(1)
-
-                elif restr_op[i] == '>=':
-                    A_count = A_count + 1
-                    A_pos.append(i)
-                    A_number.append(1)
-
-                    X_sign.append(restr_op[i])
-                    X_count = X_count + 1
-                    X_pos.append(i)
-                    X_number.append(-1)
-
-                elif restr_op[i] == '<=':
-                    X_count = X_count + 1
-                    X_pos.append(i)
-                    X_sign.append(restr_op[i])
-                    X_number.append(1)
-
-            X_matrix = np.zeros((len(restr_op), X_count))
-            A_matrix = np.zeros((len(restr_op), A_count))
-
-            n_length = len(f_obj) + X_count + A_count + 1
-            matrix = np.zeros(((len(restr_op) + 1), n_length+1))
-            limit = len(matrix[0]) - (len(matrix[0]) - A_count)
-            limit = n_length - limit
-
-            for i in range(limit, len(matrix[0])):
-                matrix[0][i] = 1
-
-            col = 0
-            for i in range(len(X_pos)):
-                X_matrix[X_pos[i]][col] = X_number[i]
-                col = col + 1
-
-            for i in range(len(X_matrix)):
-                for j in range(len(X_matrix[i])):
-                    matrix[i + 1][len(f_obj) + j + 1] = X_matrix[i][j]
-
-            col = 0
-            for i in range(len(A_pos)):
-                A_matrix[A_pos[i]][col] = A_number[i]
-                col = col + 1
+            aux = 0
+            for i in range(len(A_var)):
+                A_matrix[A_var[i][0]][aux] = A_var[i][1]
+                aux = aux + 1
 
             for i in range(len(A_matrix)):
                 for j in range(len(A_matrix[i])):
-                    matrix[i + 1][len(f_obj) + j + X_count + 1] = A_matrix[i][j]
+                    matrix[i + 1][len(f_obj) + len(S_var) + 1 + j] = A_matrix[i][j]
+
+        return matrix
+
+    elif len(f_obj) > len(restr_op):
+        print("Not supported yet")
+        return -1
 
 
-            print(matrix)
+def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
+
+    matrix = constructor(f_obj, restr_a, restr_op, restr_b)
+    print(matrix)
+    return matrix
 
 
 def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
