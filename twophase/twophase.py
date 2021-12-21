@@ -55,52 +55,6 @@ def reader(line):  # PATROCINADO
     return objet, f_obj, restricoesA, operadores, restricoesB
 
 
-def gauss(matrix, minorcolpos, lin, col):
-    pivots = []
-    for i in range(1, len(matrix)):  # montando array de linhas pivô
-        if matrix[i][minorcolpos] > 0:
-            newnum = matrix[i][0] / matrix[i][minorcolpos]
-            if newnum < 0:
-                print("Este modelo não pode ser resolvido, pois existem pivots negativos")
-                matrix = np.array([-1])
-                return matrix
-            pivots.append(newnum)
-
-    pivotMinorValue = pivots[0]
-    pivotMinorValuePos = 0
-
-    for i in range(len(pivots)):  # encontrando o menor valor do vetor de pivôs e sua posição
-        if pivots[i] < pivotMinorValue:
-            pivotMinorValue = pivots[i]
-            pivotMinorValuePos = i
-
-    pivotline = matrix[pivotMinorValuePos + 1]  # fazendo uma cópia da linha pivô da matriz
-    pivotElement = matrix[pivotMinorValuePos + 1][minorcolpos]
-
-    for i in range(lin):  # setando os novos valores para a linha pivô
-        if pivotElement > 0:
-            pivotline[i] = matrix[pivotMinorValuePos + 1][i] / pivotElement
-
-    matrix[pivotMinorValuePos + 1] = pivotline  # atualizando os valores na matriz original
-
-    for i in range(lin):  # atualizando todas as outras linhas da matriz, exceto a linha pivô
-        if i == pivotMinorValuePos + 1:
-            i + 1
-        else:
-            if i == len(matrix):
-                break
-            magicNumber = matrix[i][minorcolpos]
-            lineCopy = matrix[i]
-
-            for j in range(col):
-                if j == len(matrix[i]):
-                    break
-                else:
-                    lineCopy[j] = matrix[i][j] - (magicNumber * pivotline[j])
-
-    return matrix
-
-
 def readed(objet, f_obj, restr_a, restr_op, restr_b):
 
     if objet == "MA":
@@ -114,6 +68,52 @@ def readed(objet, f_obj, restr_a, restr_op, restr_b):
     print("Operadores: ", restr_op)
     print("Matriz de Restrições B: ")
     print(restr_b)
+
+
+def gauss(matrix, mayorColPos, lin, col):
+    pivots = []
+    phasetwo = False
+    for i in range(1, len(matrix)):  # montando array de linhas pivô
+        newnum = matrix[i][0] / matrix[i][mayorColPos]
+        if newnum < 0:
+            phasetwo = True
+            return phasetwo, matrix
+        pivots.append(newnum)
+
+
+    pivotMinorValue = pivots[0]
+    pivotMinorValuePos = 0
+
+    for i in range(len(pivots)):  # encontrando o menor valor do vetor de pivôs e sua posição
+        if pivots[i] < pivotMinorValue:
+            pivotMinorValue = pivots[i]
+            pivotMinorValuePos = i
+
+    pivotline = matrix[pivotMinorValuePos + 1]  # fazendo uma cópia da linha pivô da matriz
+    pivotElement = matrix[pivotMinorValuePos + 1][mayorColPos]
+
+    for i in range(lin):  # setando os novos valores para a linha pivô
+        if pivotElement > 0:
+            pivotline[i] = matrix[pivotMinorValuePos + 1][i] / pivotElement
+
+    matrix[pivotMinorValuePos + 1] = pivotline  # atualizando os valores na matriz original
+
+    for i in range(lin):  # atualizando todas as outras linhas da matriz, exceto a linha pivô
+        if i == pivotMinorValuePos + 1:
+            i + 1
+        else:
+            if i == len(matrix):
+                break
+            magicNumber = matrix[i][mayorColPos]
+            lineCopy = matrix[i]
+
+            for j in range(col):
+                if j == len(matrix[i]):
+                    break
+                else:
+                    lineCopy[j] = matrix[i][j] - (magicNumber * pivotline[j])
+
+    return phasetwo, matrix
 
 
 def constructor(f_obj, restr_a, restr_op, restr_b):
@@ -178,15 +178,52 @@ def constructor(f_obj, restr_a, restr_op, restr_b):
             for j in range(len(A_matrix[i])):
                 matrix[i + 1][len(f_obj) + len(S_var) + 1 + j] = A_matrix[i][j]
 
-    # Próximo: posicionar função objetivo e soma das linhas com variáveis A
+    for i in range(len(matrix[0])-len(A_var), len(matrix[0])): # Posicionando função objetivo nova
+        matrix[0][i] = 1
 
-    return matrix
+    for i in range(len(A_var)): # Posicionando soma das linhas com variáveis artificiais
+        for j in range(col-len(A_var)):
+            matrix[lin-1][j] += matrix[A_var[i][0]+1][j]
 
+    return matrix,A_var,S_var
+
+
+def phasetwo():
+    print("__________________________FASE 2_________________________")
 
 def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
 
-    matrix = constructor(f_obj, restr_a, restr_op, restr_b)
+    matrix, A_var, S_var = constructor(f_obj, restr_a, restr_op, restr_b)
+
+    lin = len(restr_op) + 2
+    col = len(f_obj) + len(S_var) + len(A_var) + 1
+    print("__________________________TABLEAU INICIAL_________________________")
     print(matrix)
+    allminorequalzero = False
+    phase = False
+    itcounter = 0
+    print("__________________________FASE 1_________________________")
+
+    while allminorequalzero == False:
+
+        itcounter = itcounter + 1
+        mayorvalue = matrix[0][0]  # Procura o maior número na ultima linha
+        mayorColPos = 0
+
+        for i in range(1, col - 1):  # encontrando o menor valor na ultima linha
+
+            if matrix[lin-1][i] > mayorvalue:
+                mayorvalue = matrix[lin-1][i]
+                mayorColPos = i
+
+        print("____________________________ITERAÇÃO", itcounter, "_____________________________")
+        phase, matrix = gauss(matrix, mayorColPos, lin, col)
+
+        if phase == True:
+            phasetwo()
+            return 1
+        else:
+            print(matrix)
 
     return matrix
 
@@ -221,9 +258,7 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
         readed(objet, f_obj, restr_A, restr_op, restr_b)
         print("__________MÉTODO SIMPLEX DUAS FASES SELECIONADO__________")
         answer = simplextwophase(objet, f_obj, restr_A, restr_op, restr_b)
-
-        print("_________________________________________________________")
-        print("_________________________________________________________")
+        print(answer)
 
 
 if __name__ == "__main__":
