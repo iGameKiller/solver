@@ -102,93 +102,92 @@ def gauss(matrix, minorcolpos, lin, col):
 
 
 def readed(objet, f_obj, restr_a, restr_op, restr_b):
+
     if objet == "MA":
         print("Objetivo: Maximizar")
     elif objet == 'MI':
         print("Objetivo: Minimizar")
+
     print("Números da função objetivo", f_obj)
-    print("Matriz de Restrições A: ")
-    print(restricoesA)
-    print("Operadores: ", operadores)
+    print("Matriz de Restrições A:")
+    print(restr_a)
+    print("Operadores: ", restr_op)
     print("Matriz de Restrições B: ")
-    print(restricoesB)
+    print(restr_b)
 
 
 def constructor(f_obj, restr_a, restr_op, restr_b):
 
-    if len(f_obj) == len(restr_op) or len(f_obj) < len(restr_op):
+    A_var = []
+    S_var = []
 
-        A_var = []
-        S_var = []
+    for i in range(len(restr_op)):
+        if restr_op[i] == '<=':
+            data = (i, 1)
+            S_var.append(data)
 
-        for i in range(len(restr_op)):
-            if restr_op[i] == '<=':
-                data = (i, 1)
-                S_var.append(data)
+        elif restr_op[i] == '>=':
+            data = (i, -1)
+            S_var.append(data)
 
-            elif restr_op[i] == '>=':
-                data = (i, -1)
-                S_var.append(data)
+            data = (i, 1)
+            A_var.append(data)
 
-                data = (i, 1)
-                A_var.append(data)
+        elif restr_op[i] == '==':
+            data = (i, 1)
+            A_var.append(data)
 
-            elif restr_op[i] == '==':
-                data = (i, 1)
-                A_var.append(data)
+    lin = len(restr_op) + 2
+    col = len(f_obj) + len(S_var) + len(A_var) + 1
 
-        lin = len(restr_op) + 2
-        col = len(f_obj) + len(S_var) + len(A_var) + 1
+    matrix = np.zeros((lin, col))
 
-        matrix = np.zeros((lin, col))
+    restr_A = np.zeros((len(restr_a), len(f_obj)))  # Transformando restrições sem tipo em numéricas
+    for i in range(len(restr_a)):
+        for j in range(len(restr_a[i])):
+            restr_A[i][j] = float(restr_a[i][j])
 
-        restr_A = np.zeros((len(restr_a), len(restr_op)))  # Transformando restrições sem tipo em numéricas
-        for i in range(len(restr_a)):
-            for j in range(len(restr_a[i])):
-                restr_A[i][j] = float(restr_a[i][j])
+    for i in range(len(restr_A)):  # Posicionando a matriz A de restrições
+        for j in range(len(restr_A[i])):
+            matrix[i + 1][j + 1] = restr_A[i][j]
 
-        for i in range(len(restr_A)):  # Posicionando a matriz A de restrições
-            for j in range(len(restr_A[i])):
-                matrix[i + 1][j + 1] = restr_A[i][j]
+    for i in range(len(restr_b)):  # Posicionando matriz B de restrições
+        matrix[i + 1][0] = restr_b[i]
 
-        for i in range(len(restr_b)):  # Posicionando matriz B de restrições
-            matrix[i + 1][0] = restr_b[i]
+    if len(S_var) > 0: # Posicionando variáveis de folga
+        S_matrix = np.zeros((len(restr_op), len(S_var)))
 
-        if len(S_var) > 0: # Posicionando variáveis de folga
-            S_matrix = np.zeros((len(restr_op), len(S_var)))
+        aux = 0
+        for i in range(len(S_var)):
+            S_matrix[S_var[i][0]][aux] = S_var[i][1]
+            aux = aux + 1
 
-            aux = 0
-            for i in range(len(S_var)):
-                S_matrix[S_var[i][0]][aux] = S_var[i][1]
-                aux = aux + 1
+        for i in range(len(S_matrix)):
+            for j in range(len(S_matrix[i])):
+                matrix[i + 1][len(f_obj) + 1 + j] = S_matrix[i][j]
 
-            for i in range(len(S_matrix)):
-                for j in range(len(S_matrix[i])):
-                    matrix[i + 1][len(f_obj) + 1 + j] = S_matrix[i][j]
+    if len(A_var) > 0: # Posicionando variáveis artificiais
+        A_matrix = np.zeros((len(restr_op), len(A_var)))
 
-        if len(A_var) > 0: # Posicionando variáveis artificiais
-            A_matrix = np.zeros((len(restr_op), len(A_var)))
+        aux = 0
+        for i in range(len(A_var)):
+            A_matrix[A_var[i][0]][aux] = A_var[i][1]
+            aux = aux + 1
 
-            aux = 0
-            for i in range(len(A_var)):
-                A_matrix[A_var[i][0]][aux] = A_var[i][1]
-                aux = aux + 1
+        for i in range(len(A_matrix)):
+            for j in range(len(A_matrix[i])):
+                matrix[i + 1][len(f_obj) + len(S_var) + 1 + j] = A_matrix[i][j]
 
-            for i in range(len(A_matrix)):
-                for j in range(len(A_matrix[i])):
-                    matrix[i + 1][len(f_obj) + len(S_var) + 1 + j] = A_matrix[i][j]
+    # Próximo: posicionar função objetivo e soma das linhas com variáveis A
 
-        return matrix
-
-    elif len(f_obj) > len(restr_op):
-        print("Not supported yet")
-        return -1
+    return matrix
 
 
 def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
 
     matrix = constructor(f_obj, restr_a, restr_op, restr_b)
     print(matrix)
+
     return matrix
 
 
@@ -222,6 +221,9 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
         readed(objet, f_obj, restr_A, restr_op, restr_b)
         print("__________MÉTODO SIMPLEX DUAS FASES SELECIONADO__________")
         answer = simplextwophase(objet, f_obj, restr_A, restr_op, restr_b)
+
+        print("_________________________________________________________")
+        print("_________________________________________________________")
 
 
 if __name__ == "__main__":
