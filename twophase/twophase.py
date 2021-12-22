@@ -147,11 +147,14 @@ def gauss(matrix, mayorColPos, lin, col):
     for i in range(1, len(matrix)):  # montando array de linhas pivô
         newnum = matrix[i][0] / matrix[i][mayorColPos]
         if newnum <= 0:
-            pivots.append(0) # o Bug mora aqui
-            return matrix
+            newnum = -newnum
+            pivots.append(newnum)
+        elif newnum == -0 or newnum == 0:
+            pivots.append(1)
+
         pivots.append(newnum)
 
-    pivotMinorValue = pivots[0]
+    pivotMinorValue = 0
     pivotMinorValuePos = 0
 
     for i in range(len(pivots)):  # encontrando o menor valor do vetor de pivôs e sua posição
@@ -203,8 +206,8 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
         mayorColPos = 0
         majorvalue = 0
 
-        for i in range(1, col):
-            if matrix[lin-1][i] >= 1:
+        for i in range(1, col-len(A_var)-len(S_var)):
+            if matrix[lin-1][i] > 0:
                 pstvcounter = pstvcounter + 1
 
         if pstvcounter > 0:
@@ -222,7 +225,7 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
         elif pstvcounter == 0:
             allessequalzero = True
 
-    exit()
+    print("Duas fases iniciado")
 
     return matrix
 
