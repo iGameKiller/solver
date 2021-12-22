@@ -205,27 +205,29 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
         raise TypeError('Parâmetro "restr_b" diferente do especificado.')
 
     readed(objet, f_obj, restr_A, restr_op, restr_b)
-    print("_____________________MÉTODO SIMPLEX SELECIONADO_____________________")
+    print("__________________________MÉTODO SIMPLEX____________________________")
 
     answer = simplexonephase(objet, f_obj, restr_A, restr_op, restr_b)
     for i in range(len(answer)):
         if i != 0:
             print("X", i, "=", "%.1f" % answer[i])
         else:
-            print("A solução ótima da Função Objetivo vale", "%.1f" % answer[i])
-            print("__________________________________________________________________")
-            print("__________________________________________________________________")
+            print("A solução ótima da Função Objetivo é", "%.1f" % answer[i])
+
 
 
 if __name__ == "__main__":
 
     f = open("simplexsolo.txt", "r")
     lines = f.readlines()
-
+    i = 0
     for l in lines:
         if l == '\n':
             break
         if l[0] != '#':  # Cortesia do Professor: ignorar linhas iniciadas com o caractere '#'
-
+            i = i + 1
+            print("Problema",i)
             objet, f_obj, restricoesA, operadores, restricoesB = reader(l)
             solver(objet, f_obj, restricoesA, operadores, restricoesB)
+            print("__________________________________________________________________")
+            print("__________________________________________________________________")

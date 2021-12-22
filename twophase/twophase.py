@@ -200,6 +200,7 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     col = len(f_obj) + len(S_var) + len(A_var) + 1
     positives = True
     itcounter = 0
+    finalmatrix = np.zeros((lin, len(f_obj) + len(S_var) + 1))
 
     print("__________________TABLEAU INICIAL__________________")
     print(matrix)
@@ -238,9 +239,19 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
         elif poscounter == 0:
             positives = False
 
-    print("_______________SEGUNDA FASE INICIADA_______________")
+    print("___________________SEGUNDA FASE____________________")
+    print("__________________TABLEAU INICIAL__________________")
 
-    return matrix
+    for i in range(len(finalmatrix)):
+        for j in range(len(finalmatrix[i])):
+            finalmatrix[i][j] = matrix[i][j]
+
+    for i in range(len(f_obj)):
+        finalmatrix[0][i+1] = f_obj[i]
+
+    print(finalmatrix)
+
+    return finalmatrix
 
 
 def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
@@ -271,7 +282,7 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
     if flag == 1:
         readed(objet, f_obj, restr_A, restr_op, restr_b)
 
-        print("_______MÉTODO SIMPLEX DUAS FASES SELECIONADO_______")
+        print("_____________MÉTODO SIMPLEX DUAS FASES_____________")
         answer = simplextwophase(objet, f_obj, restr_A, restr_op, restr_b)
         #print(answer)
 
@@ -280,11 +291,15 @@ if __name__ == "__main__":
 
     f = open("twophase.txt", "r")
     lines = f.readlines()
-
+    i = 0
     for l in lines:
         if l == '\n':
             break
         if l[0] != '#':  # Cortesia do Professor: ignorar linhas iniciadas com o caractere '#'
-
+            i = i + 1
+            print("Problema", i)
             objet, f_obj, restricoesA, operadores, restricoesB = reader(l)
             solver(objet, f_obj, restricoesA, operadores, restricoesB)
+            print("___________________________________________________")
+            print("___________________________________________________")
+            print("___________________________________________________")
