@@ -137,7 +137,7 @@ def constructor(objet, f_obj, restr_a, restr_op, restr_b):
     for i in range(len(A_var)):  # Posicionando soma das linhas com variáveis artificiais
         for j in range(col - len(A_var)):
             if objet == 'MI':
-                matrix[lin - 1][j] += -matrix[A_var[i][0] + 1][j]
+                matrix[lin - 1][j] += matrix[A_var[i][0] + 1][j]
             elif objet == 'MA':
                 matrix[lin - 1][j] += matrix[A_var[i][0] + 1][j]
 
@@ -198,37 +198,45 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     matrix, A_var, S_var = constructor(objet, f_obj, restr_a, restr_op, restr_b)
     lin = len(restr_op) + 2
     col = len(f_obj) + len(S_var) + len(A_var) + 1
-    allessequalzero = False
+    positives = True
     itcounter = 0
 
     print("__________________TABLEAU INICIAL__________________")
     print(matrix)
     print("___________________PRIMEIRA FASE___________________")
 
-    while allessequalzero == False:
+    while positives:
 
         itcounter = itcounter + 1
-        ngtvcounter = 0
+        poscounter = 0
         minorColPos = 1000000
-        minorvalue = 100000
+        minorvalue = 0
 
         for i in range(1, col-len(A_var)-len(S_var)):
-            if matrix[lin-1][i] < 0:
-                ngtvcounter = ngtvcounter + 1
+            if matrix[lin-1][i] > 0:
+                poscounter = poscounter + 1
 
-        if ngtvcounter > 0:
+        if poscounter > 0:
 
             for i in range(1, col):
-                if matrix[lin - 1][i] < minorvalue:
-                    minorvalue = matrix[lin - 1][i]
-                    minorColPos = i
+
+                if objet == 'MI':
+
+                    if -matrix[lin - 1][i] < minorvalue:
+                        minorvalue = -matrix[lin - 1][i]
+                        minorColPos = i
+                elif objet == 'MA':
+
+                    if matrix[lin - 1][i] > minorvalue:
+                        minorvalue = matrix[lin - 1][i]
+                        minorColPos = i
 
             matrix = gauss(matrix, minorColPos, lin, col)
             print("____________________Iteração",itcounter,'____________________')
             print(matrix, '\n')
 
-        elif ngtvcounter == 0:
-            allessequalzero = True
+        elif poscounter == 0:
+            positives = False
 
     print("_______________SEGUNDA FASE INICIADA_______________")
 
