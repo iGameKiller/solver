@@ -196,12 +196,14 @@ def gauss(matrix, mayorColPos, lin, col):
 def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
 
     matrix, A_var, S_var = constructor(objet, f_obj, restr_a, restr_op, restr_b)
-    print("____________TABLEAU INICIAL____________")
-    print(matrix)
     lin = len(restr_op) + 2
     col = len(f_obj) + len(S_var) + len(A_var) + 1
     allessequalzero = False
     itcounter = 0
+
+    print("__________________TABLEAU INICIAL__________________")
+    print(matrix)
+    print("___________________PRIMEIRA FASE___________________")
 
     while allessequalzero == False:
 
@@ -222,13 +224,13 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
                     minorColPos = i
 
             matrix = gauss(matrix, minorColPos, lin, col)
-            print("_______________________Iteração",itcounter,'_______________________')
+            print("____________________Iteração",itcounter,'____________________')
             print(matrix, '\n')
 
         elif ngtvcounter == 0:
             allessequalzero = True
 
-    print("Duas fases iniciado")
+    print("_______________SEGUNDA FASE INICIADA_______________")
 
     return matrix
 
@@ -261,7 +263,7 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
     if flag == 1:
         readed(objet, f_obj, restr_A, restr_op, restr_b)
 
-        print("__________MÉTODO SIMPLEX DUAS FASES SELECIONADO__________")
+        print("_______MÉTODO SIMPLEX DUAS FASES SELECIONADO_______")
         answer = simplextwophase(objet, f_obj, restr_A, restr_op, restr_b)
         #print(answer)
 
