@@ -70,7 +70,7 @@ def readed(objet, f_obj, restr_a, restr_op, restr_b):
     print(restr_b)
 
 
-def constructor(f_obj, restr_a, restr_op, restr_b):
+def constructor(objet, f_obj, restr_a, restr_op, restr_b):
     A_var = []
     S_var = []
 
@@ -136,7 +136,10 @@ def constructor(f_obj, restr_a, restr_op, restr_b):
 
     for i in range(len(A_var)):  # Posicionando soma das linhas com variáveis artificiais
         for j in range(col - len(A_var)):
-            matrix[lin - 1][j] += matrix[A_var[i][0] + 1][j]
+            if objet == 'MI':
+                matrix[lin - 1][j] += -matrix[A_var[i][0] + 1][j]
+            elif objet == 'MA':
+                matrix[lin - 1][j] += matrix[A_var[i][0] + 1][j]
 
     return matrix, A_var, S_var
 
@@ -144,17 +147,18 @@ def constructor(f_obj, restr_a, restr_op, restr_b):
 def gauss(matrix, mayorColPos, lin, col):
     pivots = []
 
-    for i in range(1, len(matrix)):  # montando array de linhas pivô
-        newnum = matrix[i][0] / matrix[i][mayorColPos]
+    for i in range(1, len(matrix)-1):  # montando array de linhas pivô
+        if matrix[i][mayorColPos] == 0:
+            newnum = matrix[i][0] / 1
+        else:
+            newnum = matrix[i][0] / matrix[i][mayorColPos]
         if newnum <= 0:
             newnum = -newnum
             pivots.append(newnum)
-        elif newnum == -0 or newnum == 0:
-            pivots.append(1)
 
         pivots.append(newnum)
 
-    pivotMinorValue = 0
+    pivotMinorValue = 100000000
     pivotMinorValuePos = 0
 
     for i in range(len(pivots)):  # encontrando o menor valor do vetor de pivôs e sua posição
@@ -163,15 +167,15 @@ def gauss(matrix, mayorColPos, lin, col):
             pivotMinorValuePos = i
 
     pivotline = matrix[pivotMinorValuePos + 1]  # fazendo uma cópia da linha pivô da matriz
-    pivotElement = matrix[pivotMinorValuePos + 1][mayorColPos]
+    pivotElement = matrix[pivotMinorValuePos+1][mayorColPos]
 
-    for i in range(lin):  # setando os novos valores para a linha pivô
+    for i in range(col):  # setando os novos valores para a linha pivô
         if pivotElement > 0:
             pivotline[i] = matrix[pivotMinorValuePos + 1][i] / pivotElement
 
     matrix[pivotMinorValuePos + 1] = pivotline  # atualizando os valores na matriz original
 
-    for i in range(lin):  # atualizando todas as outras linhas da matriz, exceto a linha pivô
+    for i in range(1,lin):  # atualizando todas as outras linhas da matriz, exceto a linha pivô
         if i == pivotMinorValuePos + 1:
             i + 1
         else:
@@ -184,14 +188,14 @@ def gauss(matrix, mayorColPos, lin, col):
                 if j == len(matrix[i]):
                     break
                 else:
-                    lineCopy[j] = matrix[i][j] - (magicNumber * pivotline[j])
+                    lineCopy[j] = matrix[i][j] - ( magicNumber * pivotline[j])
 
     return matrix
 
 
 def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
 
-    matrix, A_var, S_var = constructor(f_obj, restr_a, restr_op, restr_b)
+    matrix, A_var, S_var = constructor(objet, f_obj, restr_a, restr_op, restr_b)
     print("____________TABLEAU INICIAL____________")
     print(matrix)
     lin = len(restr_op) + 2
@@ -202,27 +206,26 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     while allessequalzero == False:
 
         itcounter = itcounter + 1
-        pstvcounter = 0
-        mayorColPos = 0
-        majorvalue = 0
+        ngtvcounter = 0
+        minorColPos = 1000000
+        minorvalue = 100000
 
         for i in range(1, col-len(A_var)-len(S_var)):
-            if matrix[lin-1][i] > 0:
-                pstvcounter = pstvcounter + 1
+            if matrix[lin-1][i] < 0:
+                ngtvcounter = ngtvcounter + 1
 
-        if pstvcounter > 0:
+        if ngtvcounter > 0:
 
             for i in range(1, col):
-                if matrix[lin - 1][i] > 0:
-                    if matrix[lin - 1][i] > majorvalue:
-                        majorvalue = matrix[lin - 1][i]
-                        mayorColPos = i
+                if matrix[lin - 1][i] < minorvalue:
+                    minorvalue = matrix[lin - 1][i]
+                    minorColPos = i
 
-            matrix = gauss(matrix, mayorColPos, lin, col)
+            matrix = gauss(matrix, minorColPos, lin, col)
             print("_______________________Iteração",itcounter,'_______________________')
             print(matrix, '\n')
 
-        elif pstvcounter == 0:
+        elif ngtvcounter == 0:
             allessequalzero = True
 
     print("Duas fases iniciado")
