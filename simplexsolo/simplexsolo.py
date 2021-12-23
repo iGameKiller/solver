@@ -70,7 +70,7 @@ def readed(objet, f_obj, restr_a, restr_op, restr_b):
     print(restr_b)
 
 
-def gauss(matrix, minorcolpos, lin, col):
+def gaussonephase(matrix, minorcolpos, lin, col):
     pivots = []
     for i in range(1, len(matrix)):  # montando array de linhas pivô
         if matrix[i][minorcolpos] > 0:
@@ -170,7 +170,7 @@ def simplexonephase(objet, f_obj, restr_a, restr_op, restr_b):
 
         print("____________________________ITERAÇÃO", itcounter, "_____________________________")
         print(matrix)
-        matrix = gauss(matrix, minorColPos, lin, col)
+        matrix = gaussonephase(matrix, minorColPos, lin, col)
         if len(matrix) == 1:
             if matrix[0] == -1:
                 allpositives = True
