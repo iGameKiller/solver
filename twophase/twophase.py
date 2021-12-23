@@ -249,6 +249,38 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     for i in range(len(f_obj)):
         finalmatrix[0][i+1] = f_obj[i]
 
+    inbase = []
+    outbase = []
+
+    for i in range(1, len(finalmatrix) - 1):
+        for j in range(1, len(finalmatrix[i]) - len(S_var)):
+            if matrix[i][j] == 1:
+                if j in outbase:
+                    pass
+                else:
+                    inbase.append(i)
+            elif matrix[i][j] == -1:
+                outbase.append(j)
+
+    newfobj = np.zeros((col-len(A_var)))
+
+    for i in range(len(inbase)):
+
+        num = finalmatrix[0][i+1]
+        aux = np.zeros((col-len(A_var)))
+
+        for j in range(col-len(A_var)):
+            aux[j] = -(matrix[inbase[i]][j]) * num
+
+        for j in range(len(inbase)):
+            newfobj[inbase[j]] = aux[inbase[j]] + finalmatrix[0][inbase[j]]
+
+        for k in range(col-len(A_var)):
+            newfobj[k] += aux[k]
+
+    for i in range(len(newfobj)):
+        finalmatrix[0][i] = newfobj[i]
+
     print(finalmatrix)
 
     return finalmatrix
