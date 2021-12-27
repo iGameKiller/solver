@@ -94,7 +94,7 @@ def constructor(objet, f_obj, restr_a, restr_op, restr_b):
             data = (i, 1)
             A_var.append(data)
 
-    lin = len(restr_op) + 2
+    lin = len(restr_op) + 1
     col = len(f_obj) + len(S_var) + len(A_var) + 1
 
     matrix = np.zeros((lin, col))
@@ -140,10 +140,11 @@ def constructor(objet, f_obj, restr_a, restr_op, restr_b):
 
     for i in range(len(A_var)):  # Posicionando soma das linhas com variáveis artificiais
         for j in range(col - len(A_var)):
-            if objet == 'MI':
-                matrix[lin - 1][j] += matrix[A_var[i][0] + 1][j]
-            elif objet == 'MA':
-                matrix[lin - 1][j] += matrix[A_var[i][0] + 1][j]
+                matrix[0][j] += matrix[A_var[i][0] + 1][j]
+
+    if objet == 'MI':
+        for i in range(col):
+            matrix[0][i] = -matrix[0][i]
 
     return matrix, A_var, S_var
 
@@ -194,21 +195,18 @@ def gaussonephase(matrix, minorcolpos, lin, col):
     return matrix
 
 
-def gausstwophase(matrix, mayorColPos, lin, col):
+def gausstwophase(matrix, minorcolpos, lin, col):
     pivots = []
-
-    for i in range(1, len(matrix)-1):  # montando array de linhas pivô
-        if matrix[i][mayorColPos] == 0:
-            newnum = matrix[i][0] / 1
-        else:
-            newnum = matrix[i][0] / matrix[i][mayorColPos]
-        if newnum <= 0:
-            newnum = -newnum
+    for i in range(1, len(matrix)):  # montando array de linhas pivô
+        if matrix[i][minorcolpos] > 0:
+            newnum = matrix[i][0] / matrix[i][minorcolpos]
+            if newnum < 0:
+                print("Este modelo não pode ser resolvido, pois existem pivots negativos")
+                matrix = np.array([-1])
+                return matrix
             pivots.append(newnum)
 
-        pivots.append(newnum)
-
-    pivotMinorValue = 100000000
+    pivotMinorValue = 1000000
     pivotMinorValuePos = 0
 
     for i in range(len(pivots)):  # encontrando o menor valor do vetor de pivôs e sua posição
@@ -217,7 +215,7 @@ def gausstwophase(matrix, mayorColPos, lin, col):
             pivotMinorValuePos = i
 
     pivotline = matrix[pivotMinorValuePos + 1]  # fazendo uma cópia da linha pivô da matriz
-    pivotElement = matrix[pivotMinorValuePos+1][mayorColPos]
+    pivotElement = matrix[pivotMinorValuePos + 1][minorcolpos]
 
     for i in range(col):  # setando os novos valores para a linha pivô
         if pivotElement > 0:
@@ -225,20 +223,20 @@ def gausstwophase(matrix, mayorColPos, lin, col):
 
     matrix[pivotMinorValuePos + 1] = pivotline  # atualizando os valores na matriz original
 
-    for i in range(1,lin):  # atualizando todas as outras linhas da matriz, exceto a linha pivô
+    for i in range(lin):  # atualizando todas as outras linhas da matriz, exceto a linha pivô
         if i == pivotMinorValuePos + 1:
             i + 1
         else:
             if i == len(matrix):
                 break
-            magicNumber = matrix[i][mayorColPos]
+            magicNumber = matrix[i][minorcolpos]
             lineCopy = matrix[i]
 
             for j in range(col):
                 if j == len(matrix[i]):
                     break
                 else:
-                    lineCopy[j] = matrix[i][j] - ( magicNumber * pivotline[j])
+                    lineCopy[j] = matrix[i][j] - (pivotline[j] * magicNumber)
 
     return matrix
 
@@ -279,50 +277,51 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     matrix, A_var, S_var = constructor(objet, f_obj, restr_a, restr_op, restr_b)
     lin = len(restr_op) + 2
     col = len(f_obj) + len(S_var) + len(A_var) + 1
-    newcol = len(f_obj) + len(S_var) + 1
-    positives = True
     itcounter = 0
-    finalmatrix = np.zeros((lin, newcol))
+    newcol = len(f_obj) + len(S_var) + 1
+    negatives = True
 
     print("__________________TABLEAU INICIAL__________________")
     print(matrix)
     print("___________________PRIMEIRA FASE___________________")
 
-    while positives:
+    while negatives:
 
         itcounter = itcounter + 1
-        poscounter = 0
-        minorColPos = 1000000
-        minorvalue = 0
+        ngtvcounter = 0
+        minorPivotPos = 1000000
+        minorpivotvalue = 0
 
-        for i in range(1, col-len(A_var)-len(S_var)):
-            if matrix[lin-1][i] > 0:
-                poscounter = poscounter + 1
+        #You know what to do!
 
-        if poscounter > 0:
+        for i in range(len(matrix[0])):
+            if matrix[0][i] < 0:
+                ngtvcounter = ngtvcounter + 1
+
+        if ngtvcounter > 0:
 
             for i in range(1, col):
 
-                if objet == 'MI':
+                    if matrix[0][i] < minorpivotvalue:
+                        minorpivotvalue = matrix[0][i]
+                        minorPivotPos = i
 
-                    if -matrix[lin - 1][i] < minorvalue:
-                        minorvalue = -matrix[lin - 1][i]
-                        minorColPos = i
-                elif objet == 'MA':
-
-                    if matrix[lin - 1][i] > minorvalue:
-                        minorvalue = matrix[lin - 1][i]
-                        minorColPos = i
-
-            matrix = gausstwophase(matrix, minorColPos, lin, col)
+            matrix = gausstwophase(matrix, minorPivotPos, lin, col)
             print("____________________Iteração",itcounter,'____________________')
             print(matrix, '\n')
 
-        elif poscounter == 0:
-            positives = False
+        ngtvcounter = 0
+        for i in range(1,newcol-1):
+            ngtvcounter += matrix[0][i]
+
+        if ngtvcounter == 0:
+            negatives = False
 
     print("___________________SEGUNDA FASE____________________")
     print("__________________TABLEAU INICIAL__________________")
+
+
+    finalmatrix = np.zeros((lin-1, newcol))
 
     for i in range(len(finalmatrix)):
         for j in range(len(finalmatrix[i])):
@@ -334,8 +333,8 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     inbase = []
     outbase = []
 
-    for i in range(1, len(finalmatrix) - 1):
-        for j in range(1, len(finalmatrix[i]) - len(S_var)):
+    for i in range(1, len(f_obj) + 1): # Separando variáveis da base
+        for j in range(1, len(f_obj) + 1):
             if matrix[i][j] == 1:
                 if j in outbase:
                     pass
@@ -346,13 +345,12 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
 
     newfobj = np.zeros((col-len(A_var)))
 
-    it = 0
-    for i in range(len(inbase)):
+    for i in range(len(inbase)): # Melhorar os resultados dessa função antes de finalizar o programa
 
-        aux = np.zeros((col - len(A_var)))
+        aux = np.zeros((newcol))
         num = finalmatrix[0][i+1]
 
-        for j in range(col-len(A_var)):
+        for j in range(newcol):
             aux[j] = matrix[inbase[i]][j] * num
 
         aux[i+1] = 0
@@ -360,36 +358,46 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
         for j in range(newcol):
             newfobj[j] += aux[j]
 
+    for i in range(len(inbase)):
+        newfobj[i+1] = 0
 
-    for i in range(col-len(A_var)):
-        if i <= len(f_obj):
-            finalmatrix[0][i] = -newfobj[i]
-        else:
-            finalmatrix[lin-1][i] = -newfobj[i]
+    for i in range(newcol):
+        finalmatrix[0][i] = newfobj[i]
 
+    print(finalmatrix)
     allpositives = False
     itcounter = 0
 
+    #Maximizar vc procura o maior negativo até toda a base estar >= 0
+    if objet == 'MA':
+        pass
+    #Minimizar vc procura o maior positivo até toda base estar <= 0
+    elif objet == 'MI':
+        pass
+
     while not allpositives:
+
         itcounter = itcounter + 1
         ngtvcounter = 0  # Conta a quantidade de valores negativos existentes
-        minorvalue = finalmatrix[0][0]  # Procura o menor número na primeira linha
-        minorColPos = 0
+        minorpivotvalue = 0  # Procura o menor número na primeira linha
+        minorPivotPos = 0
 
         for i in range(newcol - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
-            if finalmatrix[lin-1][i] < 0:
+            if finalmatrix[0][i] < 0:
                 ngtvcounter = ngtvcounter + 1
-            if finalmatrix[lin-1][i] < minorvalue:
-                minorvalue = finalmatrix[0][i]
-                minorColPos = i
 
-        print("____________________________ITERAÇÃO", itcounter, "_____________________________")
-        print(finalmatrix)
-        answer = finalmatrix[0]
-        finalmatrix = gausstwophase(matrix, minorColPos, lin, col)
+        for i in range(1, newcol):
+            if finalmatrix[0][i] > minorpivotvalue:
+                minorpivotvalue = finalmatrix[0][i]
+                minorPivotPos = i+1
 
         if ngtvcounter == 0:
             allpositives = True
+        else:
+            print("____________________________ITERAÇÃO", itcounter, "_____________________________")
+            print(finalmatrix)
+            answer = finalmatrix[0]
+            finalmatrix = gausstwophase(matrix, minorPivotPos, lin, col)
 
 
 def simplexonephase(objet, f_obj, restr_a, restr_op, restr_b):
@@ -476,7 +484,7 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
 
 if __name__ == "__main__":
 
-    f = open("problemas.txt", "r")
+    f = open("simplexsolo.txt", "r")
     lines = f.readlines()
     i = 0
     for l in lines:
