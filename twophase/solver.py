@@ -144,7 +144,7 @@ def constructor(objet, f_obj, restr_a, restr_op, restr_b):
 
     if objet == 'MI':
         for i in range(col):
-            matrix[0][i] = -matrix[0][i]
+            matrix[0][i] = matrix[0][i]
 
     return matrix, A_var, S_var
 
@@ -198,13 +198,13 @@ def gaussonephase(matrix, minorcolpos, lin, col):
 def gausstwophase(matrix, minorcolpos, lin, col):
     pivots = []
     for i in range(1, len(matrix)):  # montando array de linhas pivô
-        if matrix[i][minorcolpos] > 0:
-            newnum = matrix[i][0] / matrix[i][minorcolpos]
-            if newnum < 0:
-                print("Este modelo não pode ser resolvido, pois existem pivots negativos")
-                matrix = np.array([-1])
-                return matrix
-            pivots.append(newnum)
+
+        newnum = matrix[i][0] / matrix[i][minorcolpos]
+        if newnum < 0:
+            print("Este modelo não pode ser resolvido, pois existem pivots negativos")
+            matrix = np.array([-1])
+            return matrix
+        pivots.append(newnum)
 
     pivotMinorValue = 1000000
     pivotMinorValuePos = 0
@@ -278,26 +278,26 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     col = len(f_obj) + len(S_var) + len(A_var) + 1
     itcounter = 0
     newcol = len(f_obj) + len(S_var) + 1
-    negatives = True
+    positives = True
 
     print("__________________TABLEAU INICIAL__________________")
     print(matrix)
     print("___________________PRIMEIRA FASE___________________")
 
-    while negatives:
+    while positives:
 
         itcounter = itcounter + 1
-        ngtvcounter = 0
-        minorPivotPos = 1000000
-        minorpivotvalue = 0
+        poscounter = 0
+        PivotPos = 0
+        pivotvalue = 0
 
         # You know what to do!
 
         for i in range(len(matrix[0])):
-            if matrix[0][i] < 0:
-                ngtvcounter = ngtvcounter + 1
+            if matrix[0][i] > 0:
+                poscounter = poscounter + 1
 
-        if ngtvcounter > 0:
+        if poscounter > 0:
 
             for i in range(1, col):
 
@@ -314,7 +314,7 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
             ngtvcounter += matrix[0][i]
 
         if ngtvcounter == 0:
-            negatives = False
+            positives = False
 
     print("___________________SEGUNDA FASE____________________")
     print("__________________TABLEAU INICIAL__________________")
@@ -337,30 +337,39 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
                 if j in outbase:
                     pass
                 else:
-                    inbase.append(i)
+                    inbase.append(j)
             elif matrix[i][j] == -1:
                 outbase.append(j)
 
     newfobj = np.zeros((col - len(A_var)))
 
-    for i in range(len(inbase)): # Melhorar os resultados dessa função antes de finalizar o programa
+    # calc func 2
+    first_line = np.array(finalmatrix[0]).tolist()
 
-        aux = np.zeros((newcol))
-        num = finalmatrix[0][i+1]
+    while has_variables_bases(first_line, inbase):
+        # posicoes das colunas dos elementos base
+        for position_of_column_base in inbase:
+            ja_rodou = False
+            first_line_base = first_line[position_of_column_base]
 
-        for j in range(newcol):
-            aux[j] = matrix[inbase[i]][j] * num
+            for line_matrix in finalmatrix[1:]:
+                current_element_base = line_matrix[position_of_column_base]
+                if current_element_base != 0 and not ja_rodou:
+                    # tendo a var da primeira linha e a var base da outra linha
+                    const_mult = -(first_line_base / current_element_base)
+                    ja_rodou = True
+                    first_line = first_line + (const_mult * line_matrix)
 
-        aux[i+1] = 0
+        # att sua nova funcao objetivo com o resultado final em first_line
+        finalmatrix[0] = first_line
 
-        for j in range(newcol):
-            newfobj[j] += aux[j]
+    # outras paradas (trembolona, gh, dianabol, etc)
 
     for i in range(len(inbase)):
         newfobj[i + 1] = 0
 
     for i in range(newcol):
-        finalmatrix[0][i] = newfobj[i]
+        finalmatrix[0][i] = -first_line[i]
 
     print(finalmatrix)
     allpositives = False
@@ -401,7 +410,39 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
 
     # Minimizar vc procura o maior positivo até toda base estar <= 0
     elif objet == 'MI':
-        pass
+
+        poscounter = 0
+        for i in range(1,newcol - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
+            if finalmatrix[0][i] > 0:
+                poscounter = poscounter + 1
+
+        if poscounter == 0:
+            return finalmatrix
+        else:
+            allngtvs = False
+            while not allngtvs:
+
+                itcounter = itcounter + 1
+                ngtvcounter = 0  # Conta a quantidade de valores negativos existentes
+                pivotvalue = 0  # Procura o menor número na primeira linha
+                pivotPos = 0
+
+                for i in range(1,newcol):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
+                    if finalmatrix[0][i] < 0:
+                        ngtvcounter = ngtvcounter + 1
+
+                for i in range(1, newcol):
+                    if finalmatrix[0][i] > pivotvalue:
+                        pivotvalue = finalmatrix[0][i]
+                        pivotPos = i
+
+                if ngtvcounter == 0:
+                    allngtvs = True
+                else:
+                    print("____________________________ITERAÇÃO", itcounter, "_____________________________")
+                    print(finalmatrix)
+                    answer = finalmatrix[0]
+                    finalmatrix = gausstwophase(finalmatrix, pivotPos, lin, col)
 
 
 
@@ -499,7 +540,7 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
 
 if __name__ == "__main__":
 
-    f = open("simplexsolo.txt", "r")
+    f = open("problemas.txt", "r")
     lines = f.readlines()
     i = 0
     for l in lines:
