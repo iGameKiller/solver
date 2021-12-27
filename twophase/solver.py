@@ -1,4 +1,4 @@
-#Trabalho de Pesquisa Operacional, Simplex e Simplex duas fases
+# Trabalho de Pesquisa Operacional, Simplex e Simplex duas fases
 # João Pedro Mendonça de Souza
 
 
@@ -140,7 +140,7 @@ def constructor(objet, f_obj, restr_a, restr_op, restr_b):
 
     for i in range(len(A_var)):  # Posicionando soma das linhas com variáveis artificiais
         for j in range(col - len(A_var)):
-                matrix[0][j] += matrix[A_var[i][0] + 1][j]
+            matrix[0][j] += matrix[A_var[i][0] + 1][j]
 
     if objet == 'MI':
         for i in range(col):
@@ -273,7 +273,6 @@ def tableau(objet, f_obj, restr_a, restr_op, restr_b):
 
 
 def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
-
     matrix, A_var, S_var = constructor(objet, f_obj, restr_a, restr_op, restr_b)
     lin = len(restr_op) + 2
     col = len(f_obj) + len(S_var) + len(A_var) + 1
@@ -292,7 +291,7 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
         minorPivotPos = 1000000
         minorpivotvalue = 0
 
-        #You know what to do!
+        # You know what to do!
 
         for i in range(len(matrix[0])):
             if matrix[0][i] < 0:
@@ -302,16 +301,16 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
 
             for i in range(1, col):
 
-                    if matrix[0][i] < minorpivotvalue:
-                        minorpivotvalue = matrix[0][i]
-                        minorPivotPos = i
+                if matrix[0][i] > pivotvalue:
+                    pivotvalue = matrix[0][i]
+                    PivotPos = i
 
-            matrix = gausstwophase(matrix, minorPivotPos, lin, col)
-            print("____________________Iteração",itcounter,'____________________')
+            matrix = gausstwophase(matrix, PivotPos, lin, col)
+            print("____________________Iteração", itcounter, '____________________')
             print(matrix, '\n')
 
         ngtvcounter = 0
-        for i in range(1,newcol-1):
+        for i in range(1, newcol - 1):
             ngtvcounter += matrix[0][i]
 
         if ngtvcounter == 0:
@@ -320,20 +319,19 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     print("___________________SEGUNDA FASE____________________")
     print("__________________TABLEAU INICIAL__________________")
 
-
-    finalmatrix = np.zeros((lin-1, newcol))
+    finalmatrix = np.zeros((lin - 1, newcol))
 
     for i in range(len(finalmatrix)):
         for j in range(len(finalmatrix[i])):
             finalmatrix[i][j] = matrix[i][j]
 
     for i in range(len(f_obj)):
-        finalmatrix[0][i+1] = f_obj[i]
+        finalmatrix[0][i + 1] = f_obj[i]
 
     inbase = []
     outbase = []
 
-    for i in range(1, len(f_obj) + 1): # Separando variáveis da base
+    for i in range(1, len(f_obj) + 1):  # Separando variáveis da base
         for j in range(1, len(f_obj) + 1):
             if matrix[i][j] == 1:
                 if j in outbase:
@@ -343,7 +341,7 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
             elif matrix[i][j] == -1:
                 outbase.append(j)
 
-    newfobj = np.zeros((col-len(A_var)))
+    newfobj = np.zeros((col - len(A_var)))
 
     for i in range(len(inbase)): # Melhorar os resultados dessa função antes de finalizar o programa
 
@@ -359,7 +357,7 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
             newfobj[j] += aux[j]
 
     for i in range(len(inbase)):
-        newfobj[i+1] = 0
+        newfobj[i + 1] = 0
 
     for i in range(newcol):
         finalmatrix[0][i] = newfobj[i]
@@ -368,36 +366,54 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     allpositives = False
     itcounter = 0
 
-    #Maximizar vc procura o maior negativo até toda a base estar >= 0
+    # Maximizar vc procura o maior negativo até toda a base estar >= 0
     if objet == 'MA':
-        pass
-    #Minimizar vc procura o maior positivo até toda base estar <= 0
-    elif objet == 'MI':
-        pass
-
-    while not allpositives:
-
-        itcounter = itcounter + 1
-        ngtvcounter = 0  # Conta a quantidade de valores negativos existentes
-        minorpivotvalue = 0  # Procura o menor número na primeira linha
-        minorPivotPos = 0
-
-        for i in range(newcol - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
+        ngtvcounter = 0
+        for i in range(1, newcol - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
             if finalmatrix[0][i] < 0:
                 ngtvcounter = ngtvcounter + 1
 
-        for i in range(1, newcol):
-            if finalmatrix[0][i] > minorpivotvalue:
-                minorpivotvalue = finalmatrix[0][i]
-                minorPivotPos = i+1
-
         if ngtvcounter == 0:
-            allpositives = True
+            return finalmatrix
         else:
-            print("____________________________ITERAÇÃO", itcounter, "_____________________________")
-            print(finalmatrix)
-            answer = finalmatrix[0]
-            finalmatrix = gausstwophase(matrix, minorPivotPos, lin, col)
+            while not allpositives:
+
+                itcounter = itcounter + 1
+                ngtvcounter = 0  # Conta a quantidade de valores negativos existentes
+                minorpivotvalue = 0  # Procura o menor número na primeira linha
+                minorPivotPos = 0
+
+                for i in range(1,newcol - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
+                    if finalmatrix[0][i] < 0:
+                        ngtvcounter = ngtvcounter + 1
+
+                for i in range(1, newcol):
+                    if finalmatrix[0][i] < minorpivotvalue:
+                        minorpivotvalue = finalmatrix[0][i]
+                        minorPivotPos = i
+
+                if ngtvcounter > 0:
+                    print("____________________________ITERAÇÃO", itcounter, "_____________________________")
+
+                    finalmatrix = gausstwophase(finalmatrix, minorPivotPos, lin, col)
+                    print(finalmatrix)
+
+
+    # Minimizar vc procura o maior positivo até toda base estar <= 0
+    elif objet == 'MI':
+        pass
+
+
+
+
+def has_variables_bases(first_line, inbase):
+    cont = 0
+    for i in first_line:
+        if cont in inbase:
+            if i != 0:
+                return True
+        cont += 1
+    return False
 
 
 def simplexonephase(objet, f_obj, restr_a, restr_op, restr_b):
@@ -475,7 +491,6 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
                 print("A solução ótima da Função Objetivo é", "%.1f" % answer[i])
 
     if flag == 1:
-
         readed(objet, f_obj, restr_A, restr_op, restr_b)
 
         print("_____________MÉTODO SIMPLEX DUAS FASES_____________")
