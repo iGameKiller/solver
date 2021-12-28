@@ -271,6 +271,16 @@ def tableau(objet, f_obj, restr_a, restr_op, restr_b):
     return matrix
 
 
+def has_variables_bases(first_line, inbase):
+    cont = 0
+    for i in first_line:
+        if cont in inbase:
+            if i != 0:
+                return True
+        cont += 1
+    return False
+
+
 def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     matrix, A_var, S_var = constructor(objet, f_obj, restr_a, restr_op, restr_b)
     lin = len(restr_op) + 2
@@ -310,7 +320,8 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
 
         ngtvcounter = 0
         for i in range(1, newcol - 1):
-            ngtvcounter += matrix[0][i]
+            if matrix[0][i] < 0:
+                ngtvcounter = ngtvcounter + 1
 
         if ngtvcounter == 0:
             positives = False
@@ -326,8 +337,6 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
 
     for i in range(len(f_obj)):
         finalmatrix[0][i + 1] = f_obj[i]
-
-    print(finalmatrix, "\n")
 
     inbase = []
     outbase = []
@@ -372,13 +381,14 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     for i in range(newcol):
         finalmatrix[0][i] = -first_line[i]
 
+    it = 0
     if objet == 'MA':
 
-        print(finalmatrix,"\n")
+        print(finalmatrix, "\n")
         negatives = True
-        it = 0
-        another = True
+
         while negatives == True:
+
             ngtvcounter = 0
             for i in range(1, newcol):
                 if finalmatrix[0][i] < 0:
@@ -387,6 +397,8 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
             if ngtvcounter == 0:
                 negatives = False
             else:
+                it = it + 1
+                print("Iteração", it)
                 value = 0
                 valuepos = 0
 
@@ -395,18 +407,16 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
                         value = finalmatrix[0][i]
                         valuepos = i
 
-                finalmatrix = gausstwophase(finalmatrix,valuepos,lin,newcol)
-                it = it + 1
-                print("Iteração",it)
+                finalmatrix = gausstwophase(finalmatrix, valuepos, lin, newcol)
                 print(finalmatrix, "\n")
 
 
     elif objet == 'MI':
-        print(finalmatrix, "\n")
+
         positives = True
-        it = 0
 
         while positives == True:
+
             poscounter = 0
             for i in range(1, len(finalmatrix[0])):
                 if finalmatrix[0][i] > 0:
@@ -415,6 +425,8 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
             if poscounter == 0:
                 positives = False
             else:
+                it = it + 1
+                print("Iteração", it)
                 value = 0
                 valuepos = 0
 
@@ -428,19 +440,7 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
                 print("Iteração", it)
                 print(finalmatrix, "\n")
 
-        return finalmatrix
-
-
-
-
-def has_variables_bases(first_line, inbase):
-    cont = 0
-    for i in first_line:
-        if cont in inbase:
-            if i != 0:
-                return True
-        cont += 1
-    return False
+    return finalmatrix
 
 
 def simplexonephase(objet, f_obj, restr_a, restr_op, restr_b):
@@ -521,7 +521,9 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
         readed(objet, f_obj, restr_A, restr_op, restr_b)
 
         print("_____________MÉTODO SIMPLEX DUAS FASES_____________")
-        simplextwophase(objet, f_obj, restr_A, restr_op, restr_b)
+        answer = simplextwophase(objet, f_obj, restr_A, restr_op, restr_b)
+        print("Tableau final")
+        print(answer)
 
 
 if __name__ == "__main__":
