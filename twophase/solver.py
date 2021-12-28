@@ -201,9 +201,7 @@ def gausstwophase(matrix, minorcolpos, lin, col):
 
         newnum = matrix[i][0] / matrix[i][minorcolpos]
         if newnum < 0:
-            print("Este modelo não pode ser resolvido, pois existem pivots negativos")
-            matrix = np.array([-1])
-            return matrix
+            another = False
         pivots.append(newnum)
 
     pivotMinorValue = 1000000
@@ -211,8 +209,9 @@ def gausstwophase(matrix, minorcolpos, lin, col):
 
     for i in range(len(pivots)):  # encontrando o menor valor do vetor de pivôs e sua posição
         if pivots[i] < pivotMinorValue:
-            pivotMinorValue = pivots[i]
-            pivotMinorValuePos = i
+            if pivots[i] > 0:
+                pivotMinorValue = pivots[i]
+                pivotMinorValuePos = i
 
     pivotline = matrix[pivotMinorValuePos + 1]  # fazendo uma cópia da linha pivô da matriz
     pivotElement = matrix[pivotMinorValuePos + 1][minorcolpos]
@@ -371,78 +370,64 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     for i in range(newcol):
         finalmatrix[0][i] = -first_line[i]
 
-    print(finalmatrix)
-    allpositives = False
-    itcounter = 0
-
-    # Maximizar vc procura o maior negativo até toda a base estar >= 0
     if objet == 'MA':
-        ngtvcounter = 0
-        for i in range(1, newcol - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
-            if finalmatrix[0][i] < 0:
-                ngtvcounter = ngtvcounter + 1
 
-        if ngtvcounter == 0:
-            return finalmatrix
-        else:
-            while not allpositives:
+        print(finalmatrix,"\n")
+        negatives = True
+        it = 0
+        another = True
+        while negatives == True:
+            ngtvcounter = 0
+            for i in range(1, newcol):
+                if finalmatrix[0][i] < 0:
+                    ngtvcounter = ngtvcounter + 1
 
-                itcounter = itcounter + 1
-                ngtvcounter = 0  # Conta a quantidade de valores negativos existentes
-                minorpivotvalue = 0  # Procura o menor número na primeira linha
-                minorPivotPos = 0
+            if ngtvcounter == 0:
+                negatives = False
+            else:
+                value = 0
+                valuepos = 0
 
-                for i in range(1,newcol - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
-                    if finalmatrix[0][i] < 0:
-                        ngtvcounter = ngtvcounter + 1
+                for i in range(1, len(finalmatrix[0])):
+                    if finalmatrix[0][i] < value:
+                        value = finalmatrix[0][i]
+                        valuepos = i
 
-                for i in range(1, newcol):
-                    if finalmatrix[0][i] < minorpivotvalue:
-                        minorpivotvalue = finalmatrix[0][i]
-                        minorPivotPos = i
+                finalmatrix = gausstwophase(finalmatrix,valuepos,lin,newcol)
+                it = it + 1
+                print("Iteração",it)
+                print(finalmatrix, "\n")
+                if another == True:
+                    break
 
-                if ngtvcounter > 0:
-                    print("____________________________ITERAÇÃO", itcounter, "_____________________________")
-
-                    finalmatrix = gausstwophase(finalmatrix, minorPivotPos, lin, col)
-                    print(finalmatrix)
-
-
-    # Minimizar vc procura o maior positivo até toda base estar <= 0
     elif objet == 'MI':
+        print(finalmatrix, "\n")
+        positives = True
+        it = 0
 
-        poscounter = 0
-        for i in range(1,newcol - 1):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
-            if finalmatrix[0][i] > 0:
-                poscounter = poscounter + 1
+        while positives == True:
+            poscounter = 0
+            for i in range(1, len(finalmatrix[0])):
+                if finalmatrix[0][i] > 0:
+                    poscounter = poscounter + 1
 
-        if poscounter == 0:
-            return finalmatrix
-        else:
-            allngtvs = False
-            while not allngtvs:
+            if poscounter == 0:
+                positives = False
+            else:
+                value = 0
+                valuepos = 0
 
-                itcounter = itcounter + 1
-                ngtvcounter = 0  # Conta a quantidade de valores negativos existentes
-                pivotvalue = 0  # Procura o menor número na primeira linha
-                pivotPos = 0
+                for i in range(1, len(finalmatrix[0])):
+                    if finalmatrix[0][i] > value:
+                        value = finalmatrix[0][i]
+                        valuepos = i
 
-                for i in range(1,newcol):  # encontrando o menor valor na primeira linha, correspondente a função objetivo
-                    if finalmatrix[0][i] < 0:
-                        ngtvcounter = ngtvcounter + 1
+                finalmatrix = gausstwophase(finalmatrix, valuepos, lin, newcol)
+                it = it + 1
+                print("Iteração", it)
+                print(finalmatrix, "\n")
 
-                for i in range(1, newcol):
-                    if finalmatrix[0][i] > pivotvalue:
-                        pivotvalue = finalmatrix[0][i]
-                        pivotPos = i
-
-                if ngtvcounter == 0:
-                    allngtvs = True
-                else:
-                    print("____________________________ITERAÇÃO", itcounter, "_____________________________")
-                    print(finalmatrix)
-                    answer = finalmatrix[0]
-                    finalmatrix = gausstwophase(finalmatrix, pivotPos, lin, col)
+        return finalmatrix
 
 
 
@@ -540,7 +525,7 @@ def solver(objet, f_obj, restr_A, restr_op, restr_b, verbose=False):
 
 if __name__ == "__main__":
 
-    f = open("problemas.txt", "r")
+    f = open("teacher.txt", "r")
     lines = f.readlines()
     i = 0
     for l in lines:
