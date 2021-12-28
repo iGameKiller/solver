@@ -327,6 +327,8 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
     for i in range(len(f_obj)):
         finalmatrix[0][i + 1] = f_obj[i]
 
+    print(finalmatrix, "\n")
+
     inbase = []
     outbase = []
 
@@ -397,8 +399,7 @@ def simplextwophase(objet, f_obj, restr_a, restr_op, restr_b):
                 it = it + 1
                 print("Iteração",it)
                 print(finalmatrix, "\n")
-                if another == True:
-                    break
+
 
     elif objet == 'MI':
         print(finalmatrix, "\n")
